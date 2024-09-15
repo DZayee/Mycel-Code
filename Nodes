@@ -1,0 +1,18 @@
+docker build . -t mycel -f dockerfile-node
+docker run -it --rm \
+    -p26657:26657 \
+    -p1317:1317 \
+    -p4500:4500 \
+    -v ~/.mycel:/root/.mycel \
+    mycel
+docker compose up
+docker compose exec node2 myceld keys add validator
+NODE2_ADDR=$(docker compose exec node2 myceld keys show validator --output json | jq -r '.address') # enter passworddocker compose exec node2 myceld tx staking create-validator \
+    --amount 50000000stake \
+    --from validator --pubkey=$(docker compose exec node2 myceld tendermint show-validator) \
+    --moniker="node2" \
+    --commission-rate="0.1" \
+    --commission-max-rate="0.2" \
+    --commission-max-change-rate="0.01" \
+    --min-self-delegation="50000000" \
+    --node tcp://node1:26657
